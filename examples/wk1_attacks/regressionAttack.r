@@ -9,7 +9,7 @@
 #### Parameters ####
 set.seed(123)
 n <- 100        # Dataset size
-k.trials <- 80  # Number of queries
+k.trials <- 101  # Number of queries
 q.size <- 30    # subset size   
 addPrior <- FALSE
 
@@ -29,7 +29,7 @@ sensitiveData <- pums[sampleIndex, var]
 
 #### Here is our seemingly innocuous aggregated query ####
 query <- function(n, data){
-	index <- sample(1:length(data), n)
+	index <- sample(1:length(data), n); #get a random sample of indices
 	subset <- data[index]
 	sum <- sum(subset) #+ rnorm(n=1, mean=0, sd=0.1)
 	return(list(sum=sum, index=index))
