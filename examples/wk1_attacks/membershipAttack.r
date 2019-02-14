@@ -19,14 +19,14 @@ null.sims <- 1000
 
 ## Generate underlying population attributes
 population.prob <- runif(n=k.attributes, min=0, max=1)
-population.mean <- population.prob # 2*(population.prob-0.5)
+population.mean <- 2*(population.prob-0.5)  #population.prob
 
 ## A utility function to create data from the population
 rmvbernoulli <- function(n=1, prob){
 	history <- matrix(NA, nrow=n, ncol=length(prob))
 	for(i in 1:n){
-		x<- rbinom(n=length(prob), size=1, prob=prob)
-		x[x==0] <- 0      # Placeholder for transformation
+		x<- rbinom(n=length(prob), size=1, prob=prob); #
+		x[x==0] <- -1      # Placeholder for transformation
 		history[i,] <- x
 	}
 	return(history)
@@ -39,7 +39,8 @@ test.Homer <- function(alice, sample.mean, population.mean, referent){
 }
 
 test.Dwork <- function(alice, sample.mean, population.mean, referent){
-	test.statistic <- runif(n=1)
+  # test.statistic <- sum(alice*sample.mean) - sum(population.mean*sample.mean);
+  test.statistic <- sum(alice*sample.mean) - sum(referent*sample.mean);
 	return(test.statistic)
 }
 
@@ -56,7 +57,8 @@ nullDistribution <- function(null.sims=1000, alpha=0.05, fun, population.prob){
 		hold[i] <- eval(fun(alice=nullAlice, sample.mean=sample.mean, population.mean=population.mean, referent=referent))
 	}
 	nullDistribution <- sort(hold, decreasing=TRUE)
-	criticalValue <- mean(nullDistribution)
+	#criticalValue <- mean(nullDistribution) #this is wrong
+	criticalValue <- nullDistribution[round(alpha*null.sims)];
 	return(list(nullDist=nullDistribution, criticalVal=criticalValue))
 }
 
@@ -88,7 +90,7 @@ showdist(testdist, criticalValue, main="Null Distribution with Critical Value")
 #### Export graph to .pdf ####
 dev.copy2pdf(file="./figs/nullDistribution.pdf")
 
-stop()
+# stop()
 
 
 ## Simulate
