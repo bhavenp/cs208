@@ -6,6 +6,8 @@
 ##  BP 2.18.2019
 ##
 
+rm(list=ls()); #clear workspace of all variables
+
 #read in the PUMS
 data <- read.csv("../../data/FultonPUMS5full.csv");
 
