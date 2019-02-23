@@ -131,15 +131,15 @@ bootstrap <- function(x, y=NULL, n){
 }
 
 ## Differentially private mean release
-meanRelease <- function(x, epsilon){
+meanRelease <- function(x, lower, upper, epsilon){
 	n <- length(x)
-	lower <- min(x) 
-	upper <- max(x) 
+	# lower <- min(x) #don't want to take min and max of actual data because these values can be backed out by attacker later
+	# upper <- max(x) 
 
 	sensitivity <- (upper - lower)/n
 	scale <- sensitivity / epsilon
 
-	x.clipped <- clip(x, lower, upper)
+	x.clipped <- clip(x, lower, upper) #clip data to lower and upper bounds
 	sensitiveValue <- mean(x.clipped)
 	DPrelease <- sensitiveValue + rlap(mu=0, b=scale, size=1)
 
