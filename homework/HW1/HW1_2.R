@@ -9,14 +9,18 @@
 rm(list=ls());
 library(plyr); #import this library for doing rounding for noise
 library(ggplot2); #import library for plotting
-library(gridExtra);
+library(grid);
 
 #### Parameters ####
 prime <- 113; # prime number for hashing creating random vectors to pass to query
 n <- 100;        # Dataset size
 k.trials <- 2*n;  # Number of queries
-noise_input <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
 num_exps <- 10; #number of experiments
+noise_input <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+
+noise_vec <- c(1:100); #noise parameters for Rounding and Subsampling
+# noise_vec <- c(seq(1, 1.9, 0.1), 2:100); #noise parameters for Gaussian
+
 
 #### Import Data ####
 pums_100 <- read.csv(file="../../data/FultonPUMS5sample100.csv"); #read in data from data folder
@@ -86,8 +90,10 @@ run_experiment <- function(prime, data_input, noise_type, noise_to_add){
 
 print(Sys.time())
 #### Run through all noise parameters, each with 10 experiments ####
-final_results <- matrix(NA, nrow=n, ncol=3);  # a matrix to store results in
-for(noise_to_add in 1:n){
+final_results <- matrix(NA, nrow=length(noise_vec), ncol=3);  # a matrix to store results in
+
+for(i in 1:length(noise_vec)){
+  noise_to_add <- noise_vec[i];
   agg_rmse <- c(); #empty vector to hold the RMSE values of individual experiments
   agg_acc <- c(); #empty vector to hold the accuracy values of individual experiments
   #need to go through num_exps for each noise parameter
@@ -97,27 +103,28 @@ for(noise_to_add in 1:n){
     agg_acc <- c(agg_acc, exp_res$exp_acc); #add acc to vector
   }
   #put average of RMSEs and Accs from the experiments into the matrix
-  final_results[noise_to_add, ] <- c(noise_to_add, mean(agg_rmse), mean(agg_acc));
+  final_results[i, ] <- c(noise_to_add, mean(agg_rmse), mean(agg_acc));
 }
 print(Sys.time())
 
 final_results <- as.data.frame(final_results);
 colnames(final_results) <- c("Param_vals", "RMSE", "Acc")
 #### Plot results ####
+f_size = 15;
 # Plot average RMSE of reconstruction against noise input
 p_rmse <- ggplot(data = final_results, aes(x=final_results$Param_vals, y=final_results$RMSE)) + geom_point();
-p_rmse <- p_rmse + labs(x=paste(noise_input, "noise"), y = "Average RMSE") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=17));
+p_rmse <- p_rmse + labs(x=paste(noise_input, "noise"), y = "Average RMSE") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 # Plot average accuracy of reconstruction against noise input
 p_acc <- ggplot(data = final_results, aes(x=final_results$Param_vals, y=final_results$Acc)) + geom_point(); 
 p_acc <- p_acc + geom_hline(yintercept = 0.96, linetype="dashed", color = "blue"); 
-p_acc <- p_acc + labs(x=paste(noise_input, "noise"), y = "Average Accuracy") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=17));
+p_acc <- p_acc + labs(x=paste(noise_input, "noise"), y = "Average Accuracy") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 # Plot average RMSE vs average accuracy of reconstruction
 p_rmse_acc <- ggplot(data = final_results, aes(x=final_results$RMSE, y=final_results$Acc)) + geom_point(); 
 p_rmse_acc <- p_rmse_acc + geom_hline(yintercept = 0.96, linetype="dashed", color = "blue");
-p_rmse_acc <- p_rmse_acc + labs(x="Average RMSE", y = "Average Accuracy") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=17));
+p_rmse_acc <- p_rmse_acc + labs(x="Average RMSE", y = "Average Accuracy") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 
 #create grid for plotting
-gs <- grid.arrange(p_rmse, p_acc, p_rmse_acc, nrow=1, ncol=3, top = paste("Average RMSE & Accuracy for",noise_input,"noise") );
+gs <- grid.arrange(p_rmse, p_acc, p_rmse_acc, nrow=1, ncol=3, top=textGrob(paste("Average RMSE & Accuracy for",noise_input,"noise"), gp=gpar(fontsize=15)) );
 
 #### Export the graph
-ggsave(filename = paste("./figs/regAttack", noise_input, "noise.pdf", sep = "_"), plot=gs, width = 11, height = 8);
+ggsave(filename = paste("./figs/regAttack", noise_input, "noise.pdf", sep = "_"), plot=gs, width = 11, height = 6);
