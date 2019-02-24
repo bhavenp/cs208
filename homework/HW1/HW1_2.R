@@ -16,7 +16,7 @@ prime <- 113; # prime number for hashing creating random vectors to pass to quer
 n <- 100;        # Dataset size
 k.trials <- 2*n;  # Number of queries
 num_exps <- 10; #number of experiments
-noise_input <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+noise_input <- "Rounding"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
 
 noise_vec <- c(1:100); #noise parameters for Rounding and Subsampling
 # noise_vec <- c(seq(1, 1.9, 0.1), 2:100); #noise parameters for Gaussian

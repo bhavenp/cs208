@@ -15,9 +15,10 @@ library(gridExtra);
 prime <- 113; # prime number for hashing creating random vectors to pass to query
 n <- 100;        # Dataset size
 num_attr <- n*n; #calculate the number of attributes needed
-noise_type <- "Rounding"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
-noise_val <- 1;
-
+noise_type <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+# noise_val <- 5; #noise to introduce for Rounding
+# noise_val <- 1.4; #noise to introduce for Gaussian
+noise_val <- 92;
 
 
 #### Import Data ####
@@ -85,7 +86,7 @@ gen_sample_probs <- function(data, noise_type, noise_param){
   }
   else{
     subsamp_ind <- sample(x=1:nrow(data), size=noise_param, replace=FALSE); #get a random sample of the indices w/o replacement
-    noisy_means <- colMeans(data[subsamp_ind]);  #get column means from subsample
+    noisy_means <- colMeans(data[subsamp_ind, ]);  #get column means from subsample
     return( 2*(noisy_means - 0.5) );
   }
 }
@@ -120,7 +121,7 @@ criticalValue <- output$criticalVal
 # showdist(testdist, criticalValue, main="Null Distribution with Critical Value")
 
 #### Do Simulation ####
-range_d = seq(500, 10000, by=500); #range of attribute numbers to go through
+range_d = seq(100, 10000, by=100); #range of attribute numbers to go through
 
 history <- matrix(NA, nrow=length(range_d), ncol=3);
 myalpha <- 1 / (10*n);
@@ -150,3 +151,21 @@ for(d in range_d ){ #need to change later
   row_counter = row_counter + 1;
 }
 print(Sys.time())
+
+
+
+#### Plot results ####
+f_size = 15;
+history <- as.data.frame(history);
+colnames(history) <- c("num_attr", "tpr", "crit_val");
+# Plot average RMSE of reconstruction against noise input
+p <- ggplot(data = history, aes(x=history$num_attr, y=history$tpr)) + geom_point();
+p <- p + labs(title = paste("Membership attack with", noise_type, "noise =", noise_val), x="Number of attributes", y = "True positive rate") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
+
+#create grid for plotting
+# gs <- grid.arrange(p_rmse, p_acc, p_rmse_acc, nrow=1, ncol=3, top=textGrob(paste("Average RMSE & Accuracy for",noise_input,"noise"), gp=gpar(fontsize=15)) );
+
+#### Export the graph
+ggsave(filename = paste("./figs/memAttack", noise_type, "noise.pdf", sep = "_"), plot=p, width = 11, height = 6);
+write.csv(history, paste("./memAttack", noise_type, "noise.csv", sep = "_"));
+
