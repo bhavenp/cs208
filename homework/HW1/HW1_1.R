@@ -7,29 +7,17 @@
 ##
 
 rm(list=ls()); #clear workspace of all variables
+library(plyr);
+library(dplyr);
 
 #read in the PUMS
 data <- read.csv("../../data/FultonPUMS5full.csv");
 
-puma_regions <- unique(data$puma);
-puma_regions_table <- table(data$puma);
-puma_regions_table
-
-# puma_1101 <- data[data$puma == 1101, ];
-dups <- data[duplicated(data), ]
-
-
-ages = c();
-education = c();
-num_unique = c();
-for(a in 18:100){
-  for(e in 1:16){
-    query <- data[data$puma == 1101 & data$age==a & data$educ==e, ];
-    num_unique <- c( num_unique, nrow(query));
-    ages <- c(ages, a);
-    education <- c(education, e);
-  }
-}
-query_df <- data.frame("Age" = ages, "Education" = education, "Unique" = num_unique);
-
-unq_query_df <- query_df[query_df$Unique == 1, ]
+#groupby PUMA region, age, sex, and race in data
+data_gb <- data %>% group_by(puma, sex, age, latino, black, asian) %>% summarise(n=n());
+#get rows of groupby where we only have unique individuals
+unique_indivs <- data_gb[data_gb$n == 1, ];
+print(nrow(unique_indivs))
+#calculate the percent of people that I could uniquely
+perc_unq <- nrow(unique_indivs) / nrow(data);
+print(perc_unq)

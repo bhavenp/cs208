@@ -18,7 +18,7 @@ num_attr <- n*n; #calculate the number of attributes needed
 noise_type <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
 # noise_val <- 5; #noise to introduce for Rounding
 # noise_val <- 1.4; #noise to introduce for Gaussian
-noise_val <- 92;
+noise_val <- 92; #noise to introduce for Subsampling
 
 
 #### Import Data ####
@@ -134,13 +134,13 @@ for(d in range_d ){ #need to change later
   output <- nullDistribution(alpha = myalpha, test_stat = test.Dwork, population.prob = pop_prob[1:d]);
   #generate new sample means
   sample.mean <- gen_sample_probs(pums_100_final, noise_type=noise_type, noise_param=noise_val);
-  sample.mean <- sample.mean[1:d]; #cut the sample mean to 1:d columns
+  sample.mean <- sample.mean[1:d]; #cut the sample means to 1:d columns
   true_pos = 0;
   for(a in 1:nrow(pums_100_final)){ #loop through the 100 people in the sample
     alice <- pums_100_final[a, 1:d]; #choose Alice from sample. Cut to 1:d columns
     population.mean <- 2*(pop_prob[1:d]-0.5); #scale population means for -1 and 1
     
-    # Conduct test
+    # Conduct test for test statistic
     test.alice.Dwork <- test.Dwork(alice=alice, sample.mean=sample.mean, population.mean=population.mean);
     if( test.alice.Dwork >= output$criticalVal){ #check if test statistic is greater than critical value
       true_pos = true_pos + 1;
@@ -162,10 +162,8 @@ colnames(history) <- c("num_attr", "tpr", "crit_val");
 p <- ggplot(data = history, aes(x=history$num_attr, y=history$tpr)) + geom_point();
 p <- p + labs(title = paste("Membership attack with", noise_type, "noise =", noise_val), x="Number of attributes", y = "True positive rate") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 
-#create grid for plotting
-# gs <- grid.arrange(p_rmse, p_acc, p_rmse_acc, nrow=1, ncol=3, top=textGrob(paste("Average RMSE & Accuracy for",noise_input,"noise"), gp=gpar(fontsize=15)) );
-
 #### Export the graph
 ggsave(filename = paste("./figs/memAttack", noise_type, "noise.pdf", sep = "_"), plot=p, width = 11, height = 6);
+#### Save data so I don't have to run the simualtion again if I want to re-plot the data
 write.csv(history, paste("./memAttack", noise_type, "noise.csv", sep = "_"));
 
