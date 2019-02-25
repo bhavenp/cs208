@@ -115,10 +115,10 @@ test.Dwork <- function(alice, sample.mean, population.mean){
 
 
 ## Find the null distribution for test1
-output <- nullDistribution(test_stat=test.Dwork, population.prob = pop_prob)
-testdist <- output$nullDist
-criticalValue <- output$criticalVal
-# showdist(testdist, criticalValue, main="Null Distribution with Critical Value")
+output <- nullDistribution(test_stat=test.Dwork, population.prob = pop_prob);
+testdist <- output$nullDist;
+criticalValue <- output$criticalVal;
+
 
 #### Do Simulation ####
 range_d = seq(100, 10000, by=100); #range of attribute numbers to go through
