@@ -127,4 +127,4 @@ p_rmse_acc <- p_rmse_acc + labs(x="Average RMSE", y = "Average Accuracy") + them
 gs <- grid.arrange(p_rmse, p_acc, p_rmse_acc, nrow=1, ncol=3, top=textGrob(paste("Average RMSE & Accuracy for",noise_input,"noise"), gp=gpar(fontsize=15)) );
 
 #### Export the graph
-ggsave(filename = paste("./figs/regAttack", noise_input, "noise.pdf", sep = "_"), plot=gs, width = 11, height = 6);
+ggsave(filename = paste("./figs/regAttack", noise_input, "noise.jpg", sep = "_"), plot=gs, width = 11, height = 6);

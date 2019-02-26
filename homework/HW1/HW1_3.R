@@ -15,10 +15,10 @@ library(gridExtra);
 prime <- 113; # prime number for hashing creating random vectors to pass to query
 n <- 100;        # Dataset size
 num_attr <- n*n; #calculate the number of attributes needed
-noise_type <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
-# noise_val <- 5; #noise to introduce for Rounding
+noise_type <- "Rounding"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+noise_val <- 100; #noise to introduce for Rounding
 # noise_val <- 1.4; #noise to introduce for Gaussian
-noise_val <- 92; #noise to introduce for Subsampling
+# noise_val <- 92; #noise to introduce for Subsampling
 
 
 #### Import Data ####
@@ -92,15 +92,13 @@ gen_sample_probs <- function(data, noise_type, noise_param){
 }
 
 ## A null distribution and critical value generator. Taken from membershipAttack.r
-nullDistribution <- function(null.sims=1000, alpha=0.05, test_stat, population.prob){
+nullDistribution <- function(null.sims=1000, alpha=0.05, test_stat, population.prob, sample_means){
   population.mean <- 2*(population.prob-0.5)
-  hold <- rep(NA,null.sims)
+  hold <- rep(NA,null.sims);
+  
   for(i in 1:null.sims){
     nullAlice <- rmvbernoulli(n=1, prob=population.prob); #get an Alice that is just from the population
-    #number of columns in sample needs to be the same as length of population prob
-    sample_set = pums_100_final[,1:length(population.prob)]; 
-    sample.mean <- gen_sample_probs(sample_set, noise_type=noise_type, noise_param=noise_val)
-    hold[i] <- eval(test_stat(alice=nullAlice, sample.mean=sample.mean, population.mean=population.mean));
+    hold[i] <- eval(test_stat(alice=nullAlice, sample.mean=sample_means, population.mean=population.mean));
   }
   nullDistribution <- sort(hold, decreasing=TRUE);
   criticalValue <- nullDistribution[round(alpha*null.sims)];
@@ -109,39 +107,37 @@ nullDistribution <- function(null.sims=1000, alpha=0.05, test_stat, population.p
 
 #function that defines the Dwork test statistic. Taken from membershipAttack.r
 test.Dwork <- function(alice, sample.mean, population.mean){
-  test.statistic <- sum(alice*sample.mean) - sum(population.mean*sample.mean);
+  test.statistic <- sum(alice * sample.mean) - sum(population.mean * sample.mean);
   return(test.statistic)
 }
-
-
-## Find the null distribution for test1
-output <- nullDistribution(test_stat=test.Dwork, population.prob = pop_prob);
-testdist <- output$nullDist;
-criticalValue <- output$criticalVal;
-
+#--------------------------------------------------------------------#
 
 #### Do Simulation ####
-range_d = seq(100, 10000, by=100); #range of attribute numbers to go through
+range_d = seq(1000, 10000, by=1000); #range of attribute numbers to go through
 
 history <- matrix(NA, nrow=length(range_d), ncol=3);
 myalpha <- 1 / (10*n);
+population.mean <- 2*(pop_prob - 0.5); #scale population means/probs to -1 and 1
+#get noisy sample means for all 10,000 attributes
+sample_means <- gen_sample_probs(pums_100_final, noise_type=noise_type, noise_param=noise_val);
 
 print(Sys.time())
 #loop through the number of attributes
 row_counter = 1;
-for(d in range_d ){ #need to change later
+for(d in range_d ){ #loop through the different number of attributes
+  print(d);
+  sample_means_d <- sample_means[1:d]; #cut sample means to 1:d attributes
   #generate a new test statistic for a new null distribution based on 'd' attributes
-  output <- nullDistribution(alpha = myalpha, test_stat = test.Dwork, population.prob = pop_prob[1:d]);
-  #generate new sample means
-  sample.mean <- gen_sample_probs(pums_100_final, noise_type=noise_type, noise_param=noise_val);
-  sample.mean <- sample.mean[1:d]; #cut the sample means to 1:d columns
+  output <- nullDistribution(alpha = myalpha, test_stat = test.Dwork, population.prob = pop_prob[1:d], sample_means = sample_means_d);
+  print
+  # test_stats_for_samp <- c();
   true_pos = 0;
   for(a in 1:nrow(pums_100_final)){ #loop through the 100 people in the sample
     alice <- pums_100_final[a, 1:d]; #choose Alice from sample. Cut to 1:d columns
-    population.mean <- 2*(pop_prob[1:d]-0.5); #scale population means for -1 and 1
-    
+    alice[alice==0] <- -1; #change 0's for alice to -1's
     # Conduct test for test statistic
-    test.alice.Dwork <- test.Dwork(alice=alice, sample.mean=sample.mean, population.mean=population.mean);
+    test.alice.Dwork <- test.Dwork(alice=alice, sample.mean=sample_means_d, population.mean=population.mean[1:d]);
+    # test_stats_for_samp <- c(test_stats_for_samp, test.alice.Dwork); #for debugging  
     if( test.alice.Dwork >= output$criticalVal){ #check if test statistic is greater than critical value
       true_pos = true_pos + 1;
     }
@@ -163,7 +159,7 @@ p <- ggplot(data = history, aes(x=history$num_attr, y=history$tpr)) + geom_point
 p <- p + labs(title = paste("Membership attack with", noise_type, "noise =", noise_val), x="Number of attributes", y = "True positive rate") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 
 #### Export the graph
-ggsave(filename = paste("./figs/memAttack", noise_type, "noise.pdf", sep = "_"), plot=p, width = 11, height = 6);
+ggsave(filename = paste("./figs/memAttack", noise_type, "noise.jpg", sep = "_"), plot=p, width = 11, height = 6);
 #### Save data so I don't have to run the simualtion again if I want to re-plot the data
-write.csv(history, paste("./memAttack", noise_type, "noise.csv", sep = "_"));
+# write.csv(history, paste("./memAttack", noise_type, "noise.csv", sep = "_"));
 
