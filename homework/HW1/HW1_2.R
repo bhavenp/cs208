@@ -16,10 +16,10 @@ prime <- 113; # prime number for hashing creating random vectors to pass to quer
 n <- 100;        # Dataset size
 k.trials <- 2*n;  # Number of queries
 num_exps <- 10; #number of experiments
-noise_input <- "Rounding"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+noise_input <- "Gaussian"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
 
-noise_vec <- c(1:100); #noise parameters for Rounding and Subsampling
-# noise_vec <- c(seq(1, 1.9, 0.1), 2:100); #noise parameters for Gaussian
+# noise_vec <- c(1:100); #noise parameters for Rounding and Subsampling
+noise_vec <- c(seq(1, 1.9, 0.1), 2:100); #noise parameters for Gaussian
 
 
 #### Import Data ####
@@ -111,16 +111,17 @@ final_results <- as.data.frame(final_results);
 colnames(final_results) <- c("Param_vals", "RMSE", "Acc")
 #### Plot results ####
 f_size = 15;
+fifty = 0.5;
 # Plot average RMSE of reconstruction against noise input
 p_rmse <- ggplot(data = final_results, aes(x=final_results$Param_vals, y=final_results$RMSE)) + geom_point();
 p_rmse <- p_rmse + labs(x=paste(noise_input, "noise"), y = "Average RMSE") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 # Plot average accuracy of reconstruction against noise input
 p_acc <- ggplot(data = final_results, aes(x=final_results$Param_vals, y=final_results$Acc)) + geom_point(); 
-p_acc <- p_acc + geom_hline(yintercept = 0.96, linetype="dashed", color = "blue"); 
+p_acc <- p_acc + geom_hline(yintercept = fifty, linetype="dashed", color = "blue"); 
 p_acc <- p_acc + labs(x=paste(noise_input, "noise"), y = "Average Accuracy") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 # Plot average RMSE vs average accuracy of reconstruction
 p_rmse_acc <- ggplot(data = final_results, aes(x=final_results$RMSE, y=final_results$Acc)) + geom_point(); 
-p_rmse_acc <- p_rmse_acc + geom_hline(yintercept = 0.96, linetype="dashed", color = "blue");
+p_rmse_acc <- p_rmse_acc + geom_hline(yintercept = fifty, linetype="dashed", color = "blue");
 p_rmse_acc <- p_rmse_acc + labs(x="Average RMSE", y = "Average Accuracy") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 
 #create grid for plotting

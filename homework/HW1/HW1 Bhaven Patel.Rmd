@@ -155,7 +155,7 @@ p_rmse_acc <- p_rmse_acc + labs(x="Average RMSE", y = "Average Accuracy") + them
 gs <- grid.arrange(p_rmse, p_acc, p_rmse_acc, nrow=1, ncol=3, top=textGrob(paste("Average RMSE & Accuracy for",noise_input,"noise"), gp=gpar(fontsize=15)) );
 
 #### Export the graph
-ggsave(filename = paste("./figs/regAttack", noise_input, "noise.pdf", sep = "_"), plot=gs, width = 11, height = 6);
+ggsave(filename = paste("./figs/regAttack", noise_input, "noise.jpg", sep = "_"), plot=gs, width = 11, height = 6);
 ```
 
 Below are graphs illustrating how adding "Rounding" noise to the answers to the queries in a reconstruction attack affects the RMSE of the answer and the accuracy of the reconstruction. The dashed blue line is drawn at 0.96, which is the baseline accuracy for reconstruction since the attacker could just assume everyone is a US citizen and obtain 96% accuracy.<br>

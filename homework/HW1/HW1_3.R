@@ -112,11 +112,11 @@ test.Dwork <- function(alice, sample.mean, population.mean){
 }
 #--------------------------------------------------------------------#
 
-#### Do Simulation ####
-range_d = seq(1000, 10000, by=1000); #range of attribute numbers to go through
+#### Perform Attack ####
+range_d = c(1, seq(1000, 10000, by=1000)); #range of number of attributes to go through
 
 history <- matrix(NA, nrow=length(range_d), ncol=3);
-myalpha <- 1 / (10*n);
+myalpha <- 1 / (10*n); #myalpha is 0.001
 population.mean <- 2*(pop_prob - 0.5); #scale population means/probs to -1 and 1
 #get noisy sample means for all 10,000 attributes
 sample_means <- gen_sample_probs(pums_100_final, noise_type=noise_type, noise_param=noise_val);
@@ -128,15 +128,16 @@ for(d in range_d ){ #loop through the different number of attributes
   print(d);
   sample_means_d <- sample_means[1:d]; #cut sample means to 1:d attributes
   #generate a new test statistic for a new null distribution based on 'd' attributes
-  output <- nullDistribution(alpha = myalpha, test_stat = test.Dwork, population.prob = pop_prob[1:d], sample_means = sample_means_d);
-  print
+  output <- nullDistribution(alpha = myalpha, test_stat = test.Dwork,
+                             population.prob = pop_prob[1:d], sample_means = sample_means_d);
   # test_stats_for_samp <- c();
   true_pos = 0;
   for(a in 1:nrow(pums_100_final)){ #loop through the 100 people in the sample
     alice <- pums_100_final[a, 1:d]; #choose Alice from sample. Cut to 1:d columns
     alice[alice==0] <- -1; #change 0's for alice to -1's
     # Conduct test for test statistic
-    test.alice.Dwork <- test.Dwork(alice=alice, sample.mean=sample_means_d, population.mean=population.mean[1:d]);
+    test.alice.Dwork <- test.Dwork(alice=alice, sample.mean=sample_means_d,
+                                   population.mean=population.mean[1:d]);
     # test_stats_for_samp <- c(test_stats_for_samp, test.alice.Dwork); #for debugging  
     if( test.alice.Dwork >= output$criticalVal){ #check if test statistic is greater than critical value
       true_pos = true_pos + 1;
@@ -159,7 +160,7 @@ p <- ggplot(data = history, aes(x=history$num_attr, y=history$tpr)) + geom_point
 p <- p + labs(title = paste("Membership attack with", noise_type, "noise =", noise_val), x="Number of attributes", y = "True positive rate") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 
 #### Export the graph
-ggsave(filename = paste("./figs/memAttack", noise_type, "noise.jpg", sep = "_"), plot=p, width = 11, height = 6);
+ggsave(filename = paste("./figs/memAttack", noise_type, "noise.jpg", sep = "_"), plot=p, width = 10, height = 6);
 #### Save data so I don't have to run the simualtion again if I want to re-plot the data
-# write.csv(history, paste("./memAttack", noise_type, "noise.csv", sep = "_"));
+write.csv(history, paste("./memAttack", noise_type, "noise.csv", sep = "_"));
 
