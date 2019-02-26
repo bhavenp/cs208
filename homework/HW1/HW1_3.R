@@ -15,10 +15,10 @@ library(gridExtra);
 prime <- 113; # prime number for hashing creating random vectors to pass to query
 n <- 100;        # Dataset size
 num_attr <- n*n; #calculate the number of attributes needed
-noise_type <- "Rounding"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
-noise_val <- 100; #noise to introduce for Rounding
-# noise_val <- 1.4; #noise to introduce for Gaussian
-# noise_val <- 92; #noise to introduce for Subsampling
+noise_type <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+# noise_val <- 100; #noise to introduce for Rounding
+# noise_val <- 11; #noise to introduce for Gaussian
+noise_val <- 50; #noise to introduce for Subsampling
 
 
 #### Import Data ####
@@ -80,7 +80,7 @@ gen_sample_probs <- function(data, noise_type, noise_param){
     return( 2*(noisy_means - 0.5) );
   }
   else if(noise_type == "Gaussian"){
-    noisy_sums <- colSums(data) + rnorm(n=ncol(data), mean=0, sd=noise_param); #add noise sampled by from N(0, noise_param^2)
+    noisy_sums <- colSums(data) + rnorm(n=ncol(data), mean=0, sd=noise_param); #add noise sampled by from N(0, noise_param)
     noisy_means <- noisy_sums / nrow(data);
     return( 2*(noisy_means - 0.5) );
   }
@@ -113,7 +113,7 @@ test.Dwork <- function(alice, sample.mean, population.mean){
 #--------------------------------------------------------------------#
 
 #### Perform Attack ####
-range_d = c(1, seq(1000, 10000, by=1000)); #range of number of attributes to go through
+range_d = c(1, 5, seq(50, 10000, by=50)); #range of number of attributes to go through
 
 history <- matrix(NA, nrow=length(range_d), ncol=3);
 myalpha <- 1 / (10*n); #myalpha is 0.001

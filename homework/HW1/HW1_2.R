@@ -16,10 +16,10 @@ prime <- 113; # prime number for hashing creating random vectors to pass to quer
 n <- 100;        # Dataset size
 k.trials <- 2*n;  # Number of queries
 num_exps <- 10; #number of experiments
-noise_input <- "Gaussian"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+noise_input <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
 
-# noise_vec <- c(1:100); #noise parameters for Rounding and Subsampling
-noise_vec <- c(seq(1, 1.9, 0.1), 2:100); #noise parameters for Gaussian
+noise_vec <- c(1:100); #noise parameters for Rounding and Subsampling
+# noise_vec <- c(seq(1, 1.9, 0.1), 2:100); #noise parameters for Gaussian
 
 
 #### Import Data ####
@@ -38,7 +38,7 @@ query <- function(random_vec, data, prime, noise_type, noise_param){
     noisy_sum <- round_any(us_citz_sum, noise_param); #this function will round the sum according to a multiple of noise_param 
   }
   else if(noise_type == "Gaussian"){
-    noisy_sum <- us_citz_sum + rnorm(n=1, mean=0, sd=noise_param); #add noise sampled by from N(0, noise_param^2)
+    noisy_sum <- us_citz_sum + rnorm(n=1, mean=0, sd=noise_param); #add noise sampled by from N(0, noise_param)
   }
   else{
     subsamp_ind <- sample(x=1:length(person_in_sum), size=noise_param, replace=FALSE); #get a random sample of the indices w/o replacement
@@ -129,3 +129,7 @@ gs <- grid.arrange(p_rmse, p_acc, p_rmse_acc, nrow=1, ncol=3, top=textGrob(paste
 
 #### Export the graph
 ggsave(filename = paste("./figs/regAttack", noise_input, "noise.jpg", sep = "_"), plot=gs, width = 11, height = 6);
+
+#### Save data so I don't have to run the simualtion again if I want to re-plot the data
+write.csv(final_results, paste("./regAttack", noise_input, "noise.csv", sep = "_"));
+
