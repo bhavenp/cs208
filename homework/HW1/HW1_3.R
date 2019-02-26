@@ -15,10 +15,10 @@ library(gridExtra);
 prime <- 113; # prime number for hashing creating random vectors to pass to query
 n <- 100;        # Dataset size
 num_attr <- n*n; #calculate the number of attributes needed
-noise_type <- "Subsampling"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
+noise_type <- "Rounding"; # What type of noise will be used as defense. Can be "Rounding", "Gaussian", or "Subsampling"
 # noise_val <- 100; #noise to introduce for Rounding
-# noise_val <- 11; #noise to introduce for Gaussian
-noise_val <- 50; #noise to introduce for Subsampling
+noise_val <- 2; #noise to introduce for Gaussian
+# noise_val <- 100; #noise to introduce for Subsampling
 
 
 #### Import Data ####
@@ -160,7 +160,7 @@ p <- ggplot(data = history, aes(x=history$num_attr, y=history$tpr)) + geom_point
 p <- p + labs(title = paste("Membership attack with", noise_type, "noise =", noise_val), x="Number of attributes", y = "True positive rate") + theme(plot.title = element_text(hjust=0.5), text = element_text(size=f_size));
 
 #### Export the graph
-ggsave(filename = paste("./figs/memAttack", noise_type, "noise.jpg", sep = "_"), plot=p, width = 10, height = 6);
+ggsave(filename = paste("./figs/memAttack", noise_type, noise_val, "noise.jpg", sep = "_"), plot=p, width = 10, height = 6);
 #### Save data so I don't have to run the simualtion again if I want to re-plot the data
 write.csv(history, paste("./memAttack", noise_type, "noise.csv", sep = "_"));
 
