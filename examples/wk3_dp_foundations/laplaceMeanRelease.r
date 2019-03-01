@@ -152,27 +152,27 @@ regressionRelease <- function(y, x, ylower, yupper, xlower, xupper, epsilon){
 	y <- clip(y, ylower, yupper)
 
 	n <- length(x)
-	sens.Sxy <- 1 # Fix this
-	sens.Sxx <- 1 # Fix this
+	sens.Sxy <- (yupper - ylower) * (xupper - xlower) # Fix this
+	sens.Sxx <- (xupper - xlower)^2 # Fix this
 
 	scale.Sxy <- sens.Sxy / (epsilon/2)
 	scale.Sxx <- sens.Sxx / (epsilon/2)
 
 	sensitiveValue <- sum((x - mean(x))*(y - mean(y))) / sum((x - mean(x))^2) 
 
-	release.Sxy <- 1 # Fix this
-	release.Sxx <- 1 # Fix this
+	release.Sxy <- sum( (x - mean(x)) * (y - mean(y)) ) + rlap(b=scale.Sxy); # Fix this
+	release.Sxx <- sum(  (x - mean(x))^2 ) + rlap(b=scale.Sxx); # Fix this
 
 	postprocess.beta <- release.Sxy/release.Sxx
 	return(list(release=postprocess.beta, true=sensitiveValue))
 }
 
-n.sims <- 10												# number of simulations to run
+n.sims <- 2000												# number of simulations to run
 
-my.seq <- seq(from=log10(200), to=log10(1500), length=20)  	# make evenly spaced in logarithmic space
+my.seq <- seq(from=log10(500), to=log10(5000), length=20)  	# make evenly spaced in logarithmic space
 n.seq  <- round(10^my.seq)                                 	# round to integers
 
-my.seq <- seq(from=log10(1), to=log10(0.01), length=5)     	# make evenly spaced in logarithmic space
+my.seq <- seq(from=log10(1), to=log10(0.1), length=4)     	# make evenly spaced in logarithmic space
 ep.seq <- round(10^my.seq * 100) /100						# round to two decimal places
 
 rawhistory <- matrix(NA, nrow=length(n.seq)*length(ep.seq)*n.sims, ncol=4)  # matrix to store results
@@ -188,16 +188,16 @@ for(i in 1:length(n.seq)){
 			rawcount <- rawcount + 1
 
 			## Mean release
-			bootdata <- bootstrap(x=data, n=n.seq[i])
-			DPmean <- meanRelease(x=bootdata, epsilon=ep.seq[j])
-			release <- DPmean$release
-			sampleTrue <- DPmean$true
+			# bootdata <- bootstrap(x=data, n=n.seq[i])
+			# DPmean <- meanRelease(x=bootdata, epsilon=ep.seq[j])
+			# release <- DPmean$release
+			# sampleTrue <- DPmean$true
 
 			## Regression release
-			#bootdata <- bootstrap(x=data.x, y=data.y, n=n.seq[i])
-			#DPregression <- regressionRelease(x=bootdata$x, y=bootdata$y, xlower=, xupper=, ylower=, yupper=, epsilon=ep.seq[j])  # fix this
-			#release <- DPregression$release
-			#sampleTrue <- DPregression$true
+			bootdata <- bootstrap(x=data.x, y=data.y, n=n.seq[i])
+			DPregression <- regressionRelease(x=bootdata$x, y=bootdata$y, xlower=1, xupper=16, ylower=0, yupper=500000, epsilon=ep.seq[j])  # fix this
+			release <- DPregression$release
+			sampleTrue <- DPregression$true
 
 			error <- c(error, sampleTrue - release)
 
