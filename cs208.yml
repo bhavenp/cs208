@@ -1,0 +1,5 @@
+name: cs208_env
+dependencies:
+  - python=3.6
+  - r-base
+  - anaconda
